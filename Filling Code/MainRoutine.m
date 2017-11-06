@@ -1,4 +1,4 @@
-%Author: Vishagen Ramasamy, Jannic Holzer
+%Author: Vishagen Ramasamy, Jannic Holzer, Pau Miquel
 %Date: 20/09/2017
 
 % Copyright University of Southampton 2017.
@@ -7,42 +7,46 @@
 %accept any responsibility for use of or reliance on results produced by 
 %this software.
 
-clear;  % Removes variables from workspace memory
-close;  % Closes any figures that are still open
+% clear;  % Removes variables from workspace memory
+% close;  % Closes any figures that are still open
 
 %%
 
-% All data gathered from FrontEndUI is stored in a struct inside 'userdata'
-PassedData = get(0, 'userdata')
+function caca = MainRoutine(inputFiles, blnUseStandardData, ... 
+    PressureDataFile,TempDataFile, blnOneZone, OutputFileName, ...
+    OutputFolder, refpropdir, ConstTempK, ConstPressKPa)
 
-% Get names for configuration files
-inputFileNames = PassedData(1)
-inputFileNames = inputFileNames{1}
+% % All data gathered from FrontEndUI is stored in a struct inside 'userdata'
+% PassedData = get(0, 'userdata')
+% 
+% % Get names for configuration files
+% inputFileNames = PassedData(1)
+% inputFileNames = inputFileNames{1}
+% 
+% % Get paths for configuration files
+% inputPathNames = PassedData(2)
+% inputPathNames = inputPathNames{1}
+% 
+% % Concatenate input file paths with input file names
+% inputFiles = []
+% for i = 1:numel(inputFileNames)
+%     inputFiles = [inputFiles; strcat(inputPathNames(i), inputFileNames(i))]
+% end
 
-% Get paths for configuration files
-inputPathNames = PassedData(2)
-inputPathNames = inputPathNames{1}
+% % Get boolean for use of constant inlet profile, 0 = input .xlsx, 1 = use constant
+% blnUseStandardDataPass = PassedData(3)
+% blnUseStandardData = blnUseStandardDataPass{1}
 
-% Concatenate input file paths with input file names
-inputFiles = []
-for i = 1:numel(inputFileNames)
-    inputFiles = [inputFiles; strcat(inputPathNames(i), inputFileNames(i))]
-end
+% % Get location of .xlsx file specifying inlet pressure profile 
+% PressureDataFile = PassedData(4)
+% PressureDataFile = PressureDataFile{1}
 
-% Get boolean for use of constant inlet profile, 0 = input .xlsx, 1 = use constant
-blnUseStandardDataPass = PassedData(3)
-blnUseStandardData = blnUseStandardDataPass{1}
-
-% Get location of .xlsx file specifying inlet pressure profile 
-PressureDataFile = PassedData(4)
-PressureDataFile = PressureDataFile{1}
-
-% Get location of .xlsx file specifying inlet temperature profile 
-TempDataFile = PassedData(5)
-TempDataFile = TempDataFile{1}
+% % Get location of .xlsx file specifying inlet temperature profile 
+% TempDataFile = PassedData(5)
+% TempDataFile = TempDataFile{1}
 
 % Get number of tanks to run simulation for
-tank_number = size(inputFileNames, 1)
+tank_number = size(inputFiles, 1)
 
 % Read inlet profile for pressure and temperature from .xlsx files
 if blnUseStandardData == 0
@@ -50,28 +54,28 @@ if blnUseStandardData == 0
     InletTempData = xlsread(TempDataFile)
 end
 
-% Get boolean array for whether to force one zone model for tanks
-blnOneZone = PassedData(6)
-blnOneZone = blnOneZone{1}
-
-% Get root name for output .xlsx and .png files
-OutputFileName = PassedData(7)
-OutputFileName = OutputFileName{1}
-
-% Get folder to save resulting .xlsx and .png files into
-OutputFolder = PassedData(8)
-OutputFolder = OutputFolder{1}
-
-% Get refprop directory
-refpropdir = PassedData(9)
-refpropdir = refpropdir{1}
-
-% Get constant input profile values
-ConstTempK = PassedData(10)
-ConstTempK = ConstTempK{1}
-
-ConstPressKPa = PassedData(11)
-ConstPressKPa = ConstPressKPa{1}
+% % Get boolean array for whether to force one zone model for tanks
+% blnOneZone = PassedData(6)
+% blnOneZone = blnOneZone{1}
+% 
+% % Get root name for output .xlsx and .png files
+% OutputFileName = PassedData(7)
+% OutputFileName = OutputFileName{1}
+% 
+% % Get folder to save resulting .xlsx and .png files into
+% OutputFolder = PassedData(8)
+% OutputFolder = OutputFolder{1}
+% 
+% % Get refprop directory
+% refpropdir = PassedData(9)
+% refpropdir = refpropdir{1}
+% 
+% % Get constant input profile values
+% ConstTempK = PassedData(10)
+% ConstTempK = ConstTempK{1}
+% 
+% ConstPressKPa = PassedData(11)
+% ConstPressKPa = ConstPressKPa{1}
 
 %% Select whether conjuagte heat transfer or isothermal inner boundary conditions of the tank(s)
 % If conjugate heat transfer is selected, the outer wall boundary
@@ -186,7 +190,7 @@ Filling_process
 
 plot_graphs % Calls script for displaying plots onscreen, and writing results to .xlsx        
         
-    
+end  
     
   
 
