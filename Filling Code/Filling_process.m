@@ -13,6 +13,9 @@
 
 for j = 1:maxt
     time(j+1) = (j)*dt;                                                      % Time as filling proceeds
+    if rem(j,10000)==0
+        disp(time(j+1))
+    end
     for i = 1:tank_number
         % Select inlet pressure / temperature profile based on user input
         if blnUseStandardData == 1
@@ -72,8 +75,10 @@ for j = 1:maxt
             mfr(i,j+1) = cd(i,j+1)*rho_exit(i,j+1)*vel_exit(i,j+1)*A_inlet;                             % Calculates the mass flow rate of the gas into the tank(s)
             Re_entrance_actual(i,j+1)= 4*mfr(i,j+1)/(pi*d_inlet*visc_exit(i,j+1));                      % Calculates the actual Reynolds number at the entrance of the delivery pipe
             dM_inlet = mfr(i,j+1)*dt;                                                                   % Amount of mass of gas being fed into the tank at each time step
+
         end
         
+      
         %% Heat transfer calculations & caluclations of the thermodynamic properties of the gas in the tank(s) when L/D is less than three
         if l_d(i) <= 3 | blnOneZone{i} == 1
             

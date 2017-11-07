@@ -1,0 +1,53 @@
+%Boundary Conditions 
+
+Inner wall boundary condition (1: isothermal, 2: conjugate) 	 2 
+PCM inclusion (1: no PCM inclusion, 2: PCM inclusion) 	 1 
+Outer wall boundary condition (1: isothermal, 2: adiabatic)  	 2 
+
+%Initial Conditions 
+
+Initial pressure (bar)	150 
+Initial temperature (°C)	20.25 
+Inner wall initial temperature (°C)	20.25 
+Outer wall initial temperature (°C)	 
+
+%Tank Dimensions 
+
+Inlet pipe diameter (m)	0.005 
+Inlet pipe length (m)	0.082 
+Tank volume (m^3)	0.074 
+Liner thickness (m)	0.004 
+Laminate thickness (m)	0.015 
+Length / internal diameter	4.78686 
+PCM thickness (m)	0 
+
+%Tank Material Properties 
+
+Liner density (kg/m^3)	2700 
+Laminate density (kg/m^3)	938 
+Liner thermal conductivity (W/(mK))	205 
+Laminate thermal conductivity (W/(mK))	1.0 
+Liner specific heat capacity (J/(kgK))	910 
+Laminate specific heat capacity (J/(kgK))	1494 
+
+%Phase Change Materials Properties 
+
+PCM solid phase density (kg/m^3)	789 
+PCM liquid phase density (kg/m^3)	789 
+PCM thermal conductivity (W/(mK))	16.6 
+PCM solid specific heat capacity (J/(kgK))	1980 
+PCM liquid specific heat capacity (J/(kgK))	1980 
+PCM latent heat of fusion (J)	185000 
+PCM low melting temperature (K)	308 
+PCM high melting temperature (K)	328 
+
+%Re-Nu Coefficients 
+
+Zone 1 A Coefficient	0.0136 
+Zone 1 b Coefficient	0.95 
+Zone 2 A Coefficient	0.117 
+Zone 2 b Coefficient	0.96 
+
+%Gas Composition 
+
+Working fluid (1: hydrogen, 2: natural gas, 3: oxygen) 	 1 

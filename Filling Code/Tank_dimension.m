@@ -56,6 +56,7 @@ for i = 1:tank_number
     l_d(i) = inputdata(13);                      % length-to-diameter ratio of the tank
 end
 
+
 for i=1:tank_number
 if (Inner_wall_boundary(i)== 2 && PCM_inclusion(i) == 2)
 PCM_thickness(i) = inputdata(14);                                       % Inclusion of the thickness of the PCM

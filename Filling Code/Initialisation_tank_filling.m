@@ -15,8 +15,8 @@ for i=1:tank_number
         
         %% Properties inside of the tank(s)(s)
         
-        inputvalues = importdata(inputFiles{i}, '\t')
-        inputdata = inputvalues(:, 1).data
+        inputvalues = importdata(inputFiles{i}, '\t');
+        inputdata = inputvalues(:, 1).data;
         
         P_gas(i,j) = inputdata(4) * 100;                                                     % Initial gas pressure in tank(s) in KPa
         Temp_gas(i,j) = inputdata(5) + 273.15;                                                  % Initial gas temperature in tank(s)(s) in K
@@ -81,7 +81,7 @@ for i=1:tank_number
     time(i) = 0;                   % Intial Time
     
     %% Variables for 2 zone model
-    
+
     if l_d(i) > 3 && blnOneZone{i} == 0
         
         Re_circulation(i) =0;                                      % Reynolds number for zone 2
@@ -129,7 +129,7 @@ for i=1:tank_number
     %% Outer wall temperature for isothermal outer wall conditions
     if Inner_wall_boundary(i) == 2
         if Outer_wall_boundary(i) == 1
-            Outer_temp_wall_isothermal(i) = inputdata(7) + 273.15
+            Outer_temp_wall_isothermal(i) = inputdata(7) + 273.15;
         end
     end
 end
