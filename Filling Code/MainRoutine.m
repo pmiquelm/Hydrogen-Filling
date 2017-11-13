@@ -142,7 +142,11 @@ Filling_process
 %% Plot graphs
 
 plot_graphs % Calls script for displaying plots onscreen, and writing results to .xlsx        
-        
+      
+
+%% Fill Time and Max Temps
+
+FillTimeAndMaxTemp
 end  
     
   

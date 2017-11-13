@@ -156,8 +156,16 @@ for i=1:tank_number
     ylabel('Mass flow rate (kg/s)', 'fontsize', 12)
     saveas(gcf, strcat(OutputFolder,'mfr_vs_time.png'))
     
+    figure(3)
+    plot(time,P_gas(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Pressure (kPa)', 'fontsize', 12)
+    saveas(gcf, strcat(OutputFolder,'pres_vs_time.png'))
+    
+    
     if Inner_wall_boundary(i) == 2 & (l_d(i) <= 3 | blnOneZone{i} == 1)
-        figure(3)
+        figure(4)
         Temp_wall_C = Temp_wall{i}(1,1:maxt+1) - 273;
         plot(time,Temp_wall_C, plotStyle{i}, 'linewidth', 2)
         hold on
@@ -166,7 +174,7 @@ for i=1:tank_number
         saveas(gcf, strcat(OutputFolder,'MaxLinerTemp_vs_time.png'))
         blnShowFigures_3_4 = 1;
     elseif Inner_wall_boundary(i) == 2 & l_d(i) > 3 & blnOneZone{i} == 0
-        figure(3)
+        figure(4)
         Temp_wall_C = Temp_wall_zone1{i}(1,1:maxt+1) - 273;
         plot(time,Temp_wall_C, plotStyle{i}, 'linewidth', 2)
         hold on
@@ -177,7 +185,7 @@ for i=1:tank_number
     end
     
     if Inner_wall_boundary(i) == 2 & (l_d(i) <= 3 | blnOneZone{i} == 1)
-        figure(4)
+        figure(5)
         Temp_wall_C = Temp_wall{i}(int_pt_liner_laminate(1) + 1,1:maxt+1) - 273;
         plot(time,Temp_wall_C, plotStyle{i}, 'linewidth', 2)
         hold on
@@ -185,7 +193,7 @@ for i=1:tank_number
         ylabel('Max. Laminate Temp. (°C)', 'fontsize', 12)
         saveas(gcf, strcat(OutputFolder,'MaxLaminateTemp_vs_time.png'))
     elseif Inner_wall_boundary(i) == 2 & l_d(i) > 3 & blnOneZone{i} == 0
-        figure(4)
+        figure(5)
         Temp_wall_C = Temp_wall_zone1{i}(int_pt_liner_laminate(1) + 1,1:maxt+1) - 273;
         plot(time,Temp_wall_C, plotStyle{i}, 'linewidth', 2)
         hold on
@@ -210,10 +218,13 @@ legend(legendInfo, 'Location', 'southeast')
 figure(2)
 legend(legendInfo, 'Location', 'northeast')
 
+figure(3)
+legend(legendInfo, 'Location', 'northeast')
+
 if blnShowFigures_3_4 == 1
-    figure(3)
+    figure(4)
     legend(wall_temp_legendInfo, 'Location', 'southeast')
     
-    figure(4)
+    figure(5)
     legend(wall_temp_legendInfo, 'Location', 'southeast')
 end
