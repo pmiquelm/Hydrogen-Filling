@@ -19,12 +19,12 @@ function MainRoutine(inputFiles, blnUseStandardData, PressureDataFile, ...
 close;  % Closes any figures that are still open
 
 % Get number of tanks to run simulation for
-tank_number = size(inputFiles, 1)
+tank_number = size(inputFiles, 1);
 
 % Read inlet profile for pressure and temperature from .xlsx files
 if blnUseStandardData == 0
-    InletPressureData = xlsread(PressureDataFile)
-    InletTempData = xlsread(TempDataFile)
+    InletPressureData = xlsread(PressureDataFile);
+    InletTempData = xlsread(TempDataFile);
 end
 
 inputFileNames = []

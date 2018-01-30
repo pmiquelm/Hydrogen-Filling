@@ -21,11 +21,12 @@ function P_exit = find_exit_pressure(h,s,Fluid,P_guess, refpropdir)
 % exit pressure: pressure at the exit of the delivery pipe such that the Mach
 % number is equal to one
 
-% fzero is a non-linear root finder that searches for the value of dM
+% fzero is a non-linear root finder that searches for the value of P_guess
 % that returns dM=0
+% disp("Merda")
 [P_exit] = fzero(@find_dM,P_guess); 
    
-    function dM=find_dM(P_guess)
+    function dM = find_dM(P_guess)
         % Function that finds the pressure at the exit of the delivery pipe  
         % such that the exit Mach number is equal to one when choking
         % occurs at the exit
@@ -37,13 +38,17 @@ function P_exit = find_exit_pressure(h,s,Fluid,P_guess, refpropdir)
         % Outputs:  
         % dM:Difference between one and the exit Mach number
 
-        
-     h_static = refpropm('H','P',P_guess,'S',s,Fluid, refpropdir);     % Returns the static enthalpy at the exit of nozzle
-     sound_speed = refpropm('A','P',P_guess,'S',s,Fluid, refpropdir);  % Returns the speed of sound at the exit of nozzle  
-     M = sqrt(2*(h-h_static)/(sound_speed)^2);             % Calcutes the Mach number at the exit of nozzlee
-        
-     dM=1-M;                                                % find the difference in Mach number and one.
-     
-     
+%      disp("Shit")
+%      disp(P_guess)
+     if P_guess < 0
+        dM = -1000;
+     else
+         h_static = refpropm('H','P',P_guess,'S',s,Fluid, refpropdir);     % Returns the static enthalpy at the exit of nozzle
+         sound_speed = refpropm('A','P',P_guess,'S',s,Fluid, refpropdir);  % Returns the speed of sound at the exit of nozzle  
+         M = sqrt(2*(h-h_static)/(sound_speed)^2);             % Calcutes the Mach number at the exit of nozzlee
+
+         dM = 1 - M;                                                % find the difference in Mach number and one.
+
+     end
     end
 end

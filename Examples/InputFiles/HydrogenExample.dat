@@ -6,7 +6,7 @@ Outer wall boundary condition (1: isothermal, 2: adiabatic)  	 2
 
 %Initial Conditions 
 
-Initial pressure (bar)	100 
+Initial pressure (bar)	7 
 Initial temperature (°C)	20.25 
 Inner wall initial temperature (°C)	20.25 
 Outer wall initial temperature (°C)	 

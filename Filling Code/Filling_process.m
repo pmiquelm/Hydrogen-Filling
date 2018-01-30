@@ -14,7 +14,7 @@
 for j = 1:maxt
     time(j+1) = (j)*dt;                                                      % Time as filling proceeds
     if rem(j,10000)==0
-        disp(time(j+1))
+        disp(round(time(j+1)))
     end
     for i = 1:tank_number
         % Select inlet pressure / temperature profile based on user input
@@ -46,6 +46,7 @@ for j = 1:maxt
         end
         
         if (P_inlet(i,j+1) > Pressure_exit)  % condition for filling of tank(s)
+            %% Find Mach number at exit
             sound_exit(i,j+1) = refpropm('A','P',Pressure_exit,'S',entropy_inlet(i,j+1),Fluid{i}, refpropdir);     % Returns the speed of sound at the exit of the delivery pipe
             h_static_exit(i,j+1) = refpropm('H','P',Pressure_exit,'S',entropy_inlet(i,j+1),Fluid{i}, refpropdir);  % Returns the static enthalpy at the exit of the delivery pipe
             visc_exit(i,j+1) = refpropm('V','P',Pressure_exit,'S',entropy_inlet(i,j+1),Fluid{i}, refpropdir);      % Returns the viscosity at the exit of the delivery pipe
@@ -58,6 +59,7 @@ for j = 1:maxt
             Inlet_stagnation_enthalpy = h_inlet(i,j+1);
             P_guess =  Pressure_exit;
             
+%             disp(Pressure_exit)
             if mach_exit(i,j+1) > 1
                 Pressure_exit = find_exit_pressure(Inlet_stagnation_enthalpy,Inlet_entropy,Fluid{i},P_guess, refpropdir);  % Calls function that iterates the exit pressure until the exit Mach number is equal to one
                 sound_exit(i,j+1) = refpropm('A','P',Pressure_exit,'S',Inlet_entropy,Fluid{i}, refpropdir);                % Returns the speed of sound at the exit of the delivery pipe for choking conditions
