@@ -9,9 +9,14 @@
 
 for i = 1:tank_number
 
-    
+
+massDifference = diff(m_gas(i,1:maxt+1));
+uDifference = diff(u_gas(i,1:maxt+1));
 pressureDifference = diff(P_gas(i,1:maxt+1));
 
+
+disp(massDifference(1:1000:end))
+disp(uDifference(1:1000:end))
 disp(pressureDifference(1:1000:end))
 
 % [maxPressure, index] = max(P_gas(i,1:maxt+1)');
