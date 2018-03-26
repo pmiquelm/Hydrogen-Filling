@@ -13,13 +13,10 @@
 for i=1:tank_number
     for j=1
         
-        %% Properties inside of the tank(s)(s)
+        %% Properties inside of the tank(s)
         
-        inputvalues = importdata(inputFiles{i}, '\t');
-        inputdata = inputvalues(:, 1).data;
-        
-        P_gas(i,j) = inputdata(4) * 100;                                                     % Initial gas pressure in tank(s) in KPa
-        Temp_gas(i,j) = inputdata(5) + 273.15;                                                  % Initial gas temperature in tank(s)(s) in K
+        P_gas(i,j) = inputdata{i}(4) * 100;                                                     % Initial gas pressure in tank(s) in KPa
+        Temp_gas(i,j) = inputdata{i}(5) + 273.15;                                                  % Initial gas temperature in tank(s)(s) in K
         h_gas(i,j) = refpropm('H','T',Temp_gas(i,j),'P',P_gas(i,j),Fluid{i}, refpropdir);              % Initial specific total enthalpy of gas in tank(s)(s) in J/kg
         rho_gas(i,j) = refpropm('D','T',Temp_gas(i,j),'P',P_gas(i,j),Fluid{i}, refpropdir);            % Initial density of gas in tank(s)(s) in kg/m^3
         m_gas(i,j) = rho_gas(i,j)*vol_tank(i);                                          % Initial dass of gas in tank(s) in kg
@@ -28,8 +25,8 @@ for i=1:tank_number
         Ugas(i,j) = m_gas(i,j)*u_gas(i,j);                                              % Initial internal energy of gas in tank(s) in J
         
         %% Properties at inlet/exit of the delivery pipe
-        P_inlet(i,j) = inputdata(4) * 100;                                                   % Initial stagnation pressure at the inlet in KPa
-        Temp_inlet(i,j) = inputdata(5) + 273.15;                                                % Initial gas temperature at the inlet in K
+        P_inlet(i,j) = inputdata{i}(4) * 100;                                                   % Initial stagnation pressure at the inlet in KPa
+        Temp_inlet(i,j) = inputdata{i}(5) + 273.15;                                                % Initial gas temperature at the inlet in K
         rho_exit(i,j) = refpropm('D','T',Temp_gas(i,j),'P',P_gas(i,j),Fluid{i}, refpropdir);           % Static density at the nozzle exit
         P_static_exit(i,j) = P_gas(i,j);                                                % Initial  static pressure at the nozzle exit in KPa
         vel_exit(i,j) = 0 ;                                                 % Initial velocity of gas at nozzle exit in m/s
@@ -56,7 +53,7 @@ for i=1:tank_number
         for j = 1:grid_points
             
             r{i}(j) = (j-1)*dr(i);                % Setting grid point locations across the thickness of liner and laminate
-            Temp_wall{i}(j) = inputdata(6) + 273.15;            % Initial temperature for tank(s) wall
+            Temp_wall{i}(j) = inputdata{i}(6) + 273.15;            % Initial temperature for tank(s) wall
             
         end
         
@@ -65,16 +62,27 @@ for i=1:tank_number
         
         for j= 1:grid_points
             
-            Temp_wall_zone1{i}(j) = inputdata(6) + 273.15;         % Initial temperature for tank(s) wall in zone 1
-            Temp_wall_zone2{i}(j) = inputdata(6) + 273.15;         % Initial temperature for tank(s) wall in zone 1
+            Temp_wall_zone1{i}(j) = inputdata{i}(6) + 273.15;         % Initial temperature for tank(s) wall in zone 1
+            Temp_wall_zone2{i}(j) = inputdata{i}(6) + 273.15;         % Initial temperature for tank(s) wall in zone 1
             
         end
     end
     %% Heat variables
     
     for j=1
-        Nus(i,j) = 0;                  % Initial Nusselt number
+        Nu_ss(i,j) = 0;                  % Initial Nusselt number
+        Nu_hys(i,j) = 0;
+        tau_prod(i,j) = 0;
+        tau_disp(i,j) = 0;
+        tau(i,j) = 0;
         heat_coef_forced(i,j) = 0;     % Intial heat transfer coefficient in W/(m^2-K)
+        beta_gas(i,j) = refpropm('B','T',Temp_gas(i,j),'P',P_gas(i,j),Fluid{i}, refpropdir); 
+        cp_gas(i,j) = refpropm('C','T',Temp_gas(i,j),'P',P_gas(i,j),Fluid{i}, refpropdir);
+        visc_gas(i,j) = refpropm('V','T',Temp_gas(i,j),'P',P_gas(i,j),Fluid{i}, refpropdir);
+        Ra(i,j) = 0;
+        Nu_n(i,j) = 0;
+        heat_coef_natural(i,j) = 0;
+        heat_coef_total(i,j) = 0;
         Qsurf(i,j) = 0;                % Initial amount heat transfer across the inner wall of the tank(s) in J
     end
     %% Other variables
@@ -123,13 +131,13 @@ for i=1:tank_number
     end
     %% Inner wall temperature for isothermal inner wall conditions
     if Inner_wall_boundary(i) == 1
-        Inner_temp_wall_isothermal(i) = inputdata(6) + 273.15;
+        Inner_temp_wall_isothermal(i) = inputdata{i}(6) + 273.15;
     end
     
     %% Outer wall temperature for isothermal outer wall conditions
     if Inner_wall_boundary(i) == 2
         if Outer_wall_boundary(i) == 1
-            Outer_temp_wall_isothermal(i) = inputdata(7) + 273.15;
+            Outer_temp_wall_isothermal(i) = inputdata{i}(7) + 273.15;
         end
     end
 end

@@ -38,15 +38,26 @@ rho_gas = zeros(i, maxt+1);            % Density of gas in tank
 m_gas = zeros(i,maxt+1);               % Mass of gas in tank
 u_gas = zeros(i, maxt+1);              % Specific internal energy of gas in tank
 k_gas = zeros(i, maxt+1);              % Conductivity of gas in tank
-P_gas = zeros(i,maxt+1);             % Gas pressure in tank
+P_gas = zeros(i,maxt+1);               % Gas pressure in tank
 Temp_gas = zeros(i, maxt+1);           % Gas temperature in tank
 Ugas = zeros(i, maxt+1);               % Internal energy of gas in tank
 
 %% Heat variables
 
-Nus = zeros(i, maxt+1);                % Nusselt number
-heat_coef_forced = zeros(i, maxt+1);   % Heat transfer coefficient
-Qsurf = zeros(i, maxt+1);              % Heat transfer all the inner wall of the tank(s)
+Nu_ss = zeros(i, maxt+1);                % Nusselt number steady state
+Nu_hys = zeros(i, maxt + 1);             % Nusselt number hysterisis
+tau_prod = zeros(i, maxt + 1);
+tau_disp = zeros(i, maxt + 1);
+tau = zeros(i, maxt + 1);
+heat_coef_forced = zeros(i, maxt+1);     % Heat transfer coefficient
+Ra = zeros(i, maxt+1);                   % Rayleighs number
+beta_gas = zeros(i, maxt+1);             % Coefficient of thermal expansion
+cp_gas =  zeros(i, maxt+1);
+visc_gas =  zeros(i, maxt+1);
+Nu_n = zeros(i, maxt+1);
+heat_coef_natural = zeros(i, maxt+1);
+heat_coef_total = zeros(i, maxt+1);
+Qsurf = zeros(i, maxt+1);                % Heat transfer all the inner wall of the tank(s)
 
 %% Other variables
 
