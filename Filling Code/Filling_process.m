@@ -1,41 +1,48 @@
-%Author: Vishagen Ramasamy
+%Author: Pau Miquel, Vishagen Ramasamy
 %Date: -
 
 % Copyright University of Southampton 2017.
 % No warranty either expressed or implied is given to the results produced 
 % by this software.  Neither the University, students or its employees 
-%accept any responsibility for use of or reliance on results produced by 
-%this software.
+% accept any responsibility for use of or reliance on results produced by 
+% this software.
 
-%% script that computes the filling of the tank(s)
+%% Script that computes the filling of the tank(s)
 %% Importing the pressure and temperature profile at the entrance of the delivery pipe from Dicken and Merida
 %  and calulating the stagnation enthalpy and entropy
 
+coolDown = 0;
+tempLowLimit = 80 + 273.15;
+tauConst = 0.5;
+
+%% Create time and pressure arrays
+
+time = dt .* [0:maxt];
+P_inlet = pchip(InletPressureData(:,1),InletPressureData(:,2), time);
+
+%%
+
 for j = 1:maxt
-    time(j+1) = (j)*dt;                                                      % Time as filling proceeds
-    if rem(j,10000)==0
+    %time(j+1) = (j)*dt;   % Time as filling proceeds
+    
+    % Display time elapsed every 10,000 time steps
+    if rem(j,33333)==0 || j == 1
         disp(round(time(j+1)))
     end
+    
     for i = 1:tank_number
-        % Select inlet pressure / temperature profile based on user input
-        if blnUseStandardData == 1
-            % Constant inlet pressure profile
-            P_inlet(i,j+1) = ConstPressKPa;
-        else
-            % Read inlet pressure profile from specified file
-            P_inlet(i, j+1) = interp1(InletPressureData(:,1),InletPressureData(:,3), dt*j);
-        end
+        % Select inlet pressure / temperature profile based on user input    
+%         if blnUseProfile == 1
+%             %Temp_inlet(i,j+1) = interp1(time_in, temp_in, dt*j);   % Temperature profile after the first 1.35 seconds of the fill based on Dicken and Merida (2007)
+%             Temp_inlet(i, j+1) = interp1(InletTempData(:,1), InletTempData(:,2), dt*j);
+%         else
+%             % Read inlet temperature profile from specified file
+%             Temp_inlet(i, j+1) = ConstTempK;
+%         end
         
-        if blnUseStandardData == 1
-            %Temp_inlet(i,j+1) = interp1(time_in, temp_in, dt*j);   % Temperature profile after the first 1.35 seconds of the fill based on Dicken and Merida (2007)
-            Temp_inlet(i, j+1) = ConstTempK;
-        else
-            % Read inlet temperature profile from specified file
-            Temp_inlet(i, j+1) = interp1(InletTempData(:,1), InletTempData(:,3), dt*j);
-        end
-        
-        h_inlet(i,j+1) = refpropm('H','T',Temp_inlet(i,j+1),'P',P_inlet(i,j+1),Fluid{i}, refpropdir);       % Returns  specific total enthalpy at the entrance of the delivery pipe
-        entropy_inlet(i,j+1) = refpropm('S','T',Temp_inlet(i,j+1),'P',P_inlet(i,j+1),Fluid{i}, refpropdir); % Returns  specific entropy at the entrance of the delivery pipe
+        Temp_inlet(i, j+1) = 293.15;
+        [h_inlet(i,j+1) entropy_inlet(i,j+1)] = refpropm('HS','T',Temp_inlet(i,j+1),'P',P_inlet(i,j+1),Fluid{i}, refpropdir);       % Returns  specific total enthalpy at the entrance of the delivery pipe
+
         
         %% Determine which pressure to use at the exit of the delivery pipe which is dependent upon the number of zones
         
@@ -45,11 +52,39 @@ for j = 1:maxt
             Pressure_exit = P_gas(i,j);          % The pressure at the exit of the delivery pipe is equal to the gas pressure within the whole tank(s)
         end
         
-        if (P_inlet(i,j+1) > Pressure_exit)  % condition for filling of tank(s)
+       
+        %% Conditions for Flow
+        isFlow = 1;
+        
+        if blnThrottling
+            if (P_inlet(i,j+1) < Pressure_exit) % condition for filling of tank(s)
+                isFlow = 0;
+            end
+
+            if coolDown == 1 && Temp_gas(i,j) < tempLowLimit
+                coolDown = 0;
+            end
+
+            if Temp_gas(i,j) > 358 || coolDown == 1
+                coolDown = 1;
+                isFlow = 0;
+            end 
+        end
+        
+        if P_gas(i,j) > 70000
+            isFlow = 0;
+        end
+        
+        if (P_inlet(i,j+1) < Pressure_exit)
+            isFlow = 0;
+        end
+        
+        if isFlow == 1 && blnConstMassFlow == 0
             %% Find Mach number at exit
-            sound_exit(i,j+1) = refpropm('A','P',Pressure_exit,'S',entropy_inlet(i,j+1),Fluid{i}, refpropdir);     % Returns the speed of sound at the exit of the delivery pipe
-            h_static_exit(i,j+1) = refpropm('H','P',Pressure_exit,'S',entropy_inlet(i,j+1),Fluid{i}, refpropdir);  % Returns the static enthalpy at the exit of the delivery pipe
-            visc_exit(i,j+1) = refpropm('V','P',Pressure_exit,'S',entropy_inlet(i,j+1),Fluid{i}, refpropdir);      % Returns the viscosity at the exit of the delivery pipe
+            
+%            % Returns the speed of sound, static enthalpy, viscosity and density at the exit of the delivery pipe           
+            [sound_exit(i,j+1) h_static_exit(i,j+1) visc_exit(i,j+1) rho_exit(i,j+1)] =  refpropm('AHVD','P',Pressure_exit,'S',entropy_inlet(i,j+1),Fluid{i}, refpropdir); 
+%             disp([Pressure_exit,entropy_inlet(i,j+1)])
             mach_exit(i,j+1) = sqrt(2*(h_inlet(i,j+1)-h_static_exit(i,j+1))/sound_exit(i,j+1)^2);   % Calculates the Mach number at the exit of the delivery pipe
             
             %% If Mach number is greater than one, the exit pressure is greater than the pressure within the tank(s) and
@@ -59,45 +94,70 @@ for j = 1:maxt
             Inlet_stagnation_enthalpy = h_inlet(i,j+1);
             P_guess =  Pressure_exit;
             
-%             disp(Pressure_exit)
             if mach_exit(i,j+1) > 1
-                Pressure_exit = find_exit_pressure(Inlet_stagnation_enthalpy,Inlet_entropy,Fluid{i},P_guess, refpropdir);  % Calls function that iterates the exit pressure until the exit Mach number is equal to one
-                sound_exit(i,j+1) = refpropm('A','P',Pressure_exit,'S',Inlet_entropy,Fluid{i}, refpropdir);                % Returns the speed of sound at the exit of the delivery pipe for choking conditions
-                h_static_exit(i,j+1) = refpropm('H','P',Pressure_exit,'S',Inlet_entropy,Fluid{i}, refpropdir);             % Returns the static enthalpy at the exit of the delivery pipe for choking conditions
-                visc_exit(i,j+1) = refpropm('V','P',Pressure_exit,'S',Inlet_entropy,Fluid{i}, refpropdir);                 % Returns the viscosity at the exit of the delivery pipe for choking conditions
+                Pressure_exit = find_exit_pressure(Inlet_stagnation_enthalpy,Inlet_entropy,Fluid{i},P_guess, refpropdir);  % Calls function that iterates the exit pressure until the exit Mach number is equal to one                 
+                % Returns the speed of sound, static enthalpy, viscosity and density at the exit of the delivery pipe for choking conditions      
+                [sound_exit(i,j+1) h_static_exit(i,j+1) visc_exit(i,j+1) rho_exit(i,j+1)] = refpropm('AHVD','P',Pressure_exit,'S',Inlet_entropy,Fluid{i}, refpropdir); 
                 mach_exit(i,j+1) = sqrt(2*(h_inlet(i,j+1)-h_static_exit(i,j+1))/sound_exit(i,j+1)^2);       % Confirms that the Mach number at the exit of the delivery pipe is one for choking conditions
             end
             
             %% Calculation of the mass flow rate into the tank(s)
-            
-            rho_exit(i,j+1) = refpropm('D','P',Pressure_exit,'S',Inlet_entropy,Fluid{i}, refpropdir);                  % Returns the density of the gas at the exit of the delivery pipe
+                        
             vel_exit(i,j+1) = mach_exit(i,j+1)*sound_exit(i,j+1);                                       % Calculates the velocity of the gas at the exit of the delivery pipe
-            Re_exit_isentropic(i,j+1) = rho_exit(i,j+1) *d_inlet*vel_exit(i,j+1)/visc_exit(i,j+1);      % Calculates the isentropic Reynolds number at the exit of the delivery pipe
-            cd(i,j+1) =  I + J/(Re_exit_isentropic(i,j+1)^(0.25));                                      % Calculates the discharge coefficient
+            Re_exit_isentropic(i,j+1) = rho_exit(i,j+1) * d_inlet * vel_exit(i,j+1) / visc_exit(i,j+1);      % Calculates the isentropic Reynolds number at the exit of the delivery pipe
+            cd(i,j+1) =  I + J/(Re_exit_isentropic(i,j+1)^(0.25));                                      % Calculates the discharge coefficient 
             mfr(i,j+1) = cd(i,j+1)*rho_exit(i,j+1)*vel_exit(i,j+1)*A_inlet;                             % Calculates the mass flow rate of the gas into the tank(s)
+   
             Re_entrance_actual(i,j+1)= 4*mfr(i,j+1)/(pi*d_inlet*visc_exit(i,j+1));                      % Calculates the actual Reynolds number at the entrance of the delivery pipe
             dM_inlet = mfr(i,j+1)*dt;                                                                   % Amount of mass of gas being fed into the tank at each time step
 
+        elseif blnConstMassFlow
+            dM_inlet = constMassFlow * dt;
+            
+        else
+            dM_inlet = 0;
         end
         
+        %% Time scales
+
+        tau_prod(i,j+1) = 140.2/vel_exit(i,j+1);
+        tau_disp(i,j+1) = 40 * a_1 * l_tank^2 / (visc_gas(i,j) * Nu_hys(i,j) * (2 * 5.9));
+        tau(i,j+1) = min(tau_disp(i,j+1),tau_prod(i,j+1));
+        
+%         disp(tau_disp(i,j+1))       
+%         disp(vel_exit(i,j+1))
+%         disp(140.2/vel_exit(i,j+1))
+%         disp(tau_prod(i,j+1))
+%         disp(tau(i,j+1))
+%         fprintf('\n')
       
         %% Heat transfer calculations & caluclations of the thermodynamic properties of the gas in the tank(s) when L/D is less than three
         if l_d(i) <= 3 | blnOneZone{i} == 1
+
+%            % Thermal conductivity, coef. of thermal expansion, Cp, and viscosity of the gas in the tank(s) during the fill          
+            [k_gas(i,j+1) beta_gas(i,j+1) cp_gas(i,j+1) visc_gas(i,j+1)] = refpropm('LBCV','T',Temp_gas(i,j),'P',P_gas(i,j),Fluid{i}, refpropdir);
             
-            Nus(i,j+1) =   a_1*Re_entrance_actual(i,j+1)^(b_1);                   % Nusselt number and Reynolds number correlation for a single zone model (a_1 and b_1 are constants and are defined in the main script)
-            k_gas(i,j+1) = refpropm('L','T',Temp_gas(i,j),'P',P_gas(i,j),Fluid{i}, refpropdir);  % Thermal conductivity of the gas in the tank(s) during the fill
-            heat_coef_forced(i,j+1) = Nus(i,j+1)*k_gas(i,j+1)/d_tank(i);          % Calculation of the heat transfer coefficient for the 1 zone model during the fill
+            Nu_ss(i,j+1) =   a_1*Re_entrance_actual(i,j+1)^(b_1);                   % Nusselt number and Reynolds number correlation for a single zone model (a_1 and b_1 are constants and are defined in the main script)
+            Nu_hys(i,j+1) = Nu_hys(i,j) + (dt * (Nu_ss(i,j+1) - Nu_hys(i,j)) / tau(i,j+1));
+            heat_coef_forced(i,j+1) = Nu_hys(i,j+1)*k_gas(i,j+1)/d_tank(i);          % Calculation of the heat transfer coefficient for the 1 zone model during the fill
+
+            Ra(i,j+1) = rho_gas(i,j)^2 * 9.81 * beta_gas(i,j+1) * (Temp_gas(i,j)-Temp_wall{i}(1,j)) * d_tank^3 * cp_gas(i,j+1) / (k_gas(i,j+1) * visc_gas(i,j+1));
+            Nu_n(i,j+1) =  1.181 * Ra(i,j+1)^0.214;  
+            heat_coef_natural(i,j+1) = Nu_n(i,j+1)*k_gas(i,j+1)/d_tank(i);
             
-            if Inner_wall_boundary(i) == 1                                                                                                                        % Condition for isothermal inner wall
-                Qsurf(i,j+1) = -dt*surf_area(i)*heat_coef_forced(i,j+1)*(Temp_gas(i,j)-Inner_temp_wall_isothermal(i));                                               % Heat transfer when the inner wall is set to isothermal conditions
+            heat_coef_total(i,j+1) = ((heat_coef_natural(i,j+1)^4 + heat_coef_forced(i,j+1)^4))^(1/4);
+            
+            if Inner_wall_boundary(i) == 1                                                                                                                         % Condition for isothermal inner wall
+                Qsurf(i,j+1) = -dt*surf_area(i)*heat_coef_total(i,j+1)*(Temp_gas(i,j)-Inner_temp_wall_isothermal(i));                                               % Heat transfer when the inner wall is set to isothermal conditions
             else                                                                                                                                                  % Condition for conjugate heat transfer
-                Qsurf(i,j+1) = -dt*surf_area(i)*heat_coef_forced(i,j+1)*(Temp_gas(i,j)-Temp_wall{i}(1,j));                                                           % Heat transfer for conjugate heat transfer case
-                Temp_wall{i}(1,j+1) = Temp_wall{i}(1,j)+ CFL_liner(i)*(Temp_wall{i}(2,j)- Temp_wall{i}(1,j) - Qsurf(i,j+1)*dr(i)/(cond_liner(i)*(surf_area(i)*dt))); % Calculates inner wall temperature for conjugate heat transfer case
+                Qsurf(i,j+1) = -dt*surf_area(i)*heat_coef_total(i,j+1)*(Temp_gas(i,j)-Temp_wall{i}(1,j));                                                           % Heat transfer for conjugate heat transfer case
                 
+                Temp_wall{i}(1,j+1) = Temp_wall{i}(1,j)+ CFL_liner(i)*2*(Temp_wall{i}(2,j)- Temp_wall{i}(1,j)) -2*Qsurf(i,j+1)/(dr(i)*rho_liner(i)*surf_area(i)*c_liner(i));    % Calculates inner wall temperature for conjugate heat transfer case
+               
                 if Outer_wall_boundary(i)==1                                                                                                                                                                 % Condition for isothermal outer wall conditions
                     Temp_wall{i}(number_of_gridpoints(i),j+1) = Outer_temp_wall_isothermal(i);                                                                                                                   % Temperature at the outer wall for isothermal outer wall conditions
                 else                                                                                                                                                                                         % Condition for adiabatic outer wall conditions
-                    Temp_wall{i}(number_of_gridpoints(i),j+1) = Temp_wall{i}(number_of_gridpoints(i),j)+2*CFL_laminate(i)*(Temp_wall{i}(number_of_gridpoints(i)-1,j)-Temp_wall{i}(number_of_gridpoints(i),j));   % Temperature at the outer wall for adiabatic outer wall conditions
+                    Temp_wall{i}(number_of_gridpoints(i),j+1) = Temp_wall{i}(number_of_gridpoints(i),j)+CFL_laminate(i)*(Temp_wall{i}(number_of_gridpoints(i)-1,j)-Temp_wall{i}(number_of_gridpoints(i),j));   % Temperature at the outer wall for adiabatic outer wall conditions
                 end
                 % Computation of the temperature of the struture of the tank(s)
                 for k=2:number_of_gridpoints(i)-1
@@ -106,17 +166,35 @@ for j = 1:maxt
                     elseif (k>=int_pt_liner_laminate(i)+1)&&(k<=number_of_gridpoints(i)-1)
                         Temp_wall{i}(k,j+1) = Temp_wall{i}(k,j)+CFL_laminate(i)*(Temp_wall{i}(k+1,j)-2*Temp_wall{i}(k,j)+Temp_wall{i}(k-1,j));                             % Temperature across the laminate
                     else
-                        Temp_wall{i}(k,j+1) = (cond_laminate(i)*(Temp_wall{i}(k+1,j)+CFL_laminate(i)*(Temp_wall{i}(k+2,j)-2*Temp_wall{i}(k+1,j)+Temp_wall{i}(k,j)))+cond_liner(i)*Temp_wall{i}(k-1,j+1))/(cond_liner(i)+cond_laminate(i)); % Temperature at the interface of the liner and the laminate
+                        Temp_wall{i}(k,j+1) = Temp_wall{i}(k,j)+ dt/(dr(i)^2)*(cond_laminate(i)*(Temp_wall{i}(k+1,j) - Temp_wall{i}(k,j)) - cond_liner(i)*(Temp_wall{i}(k,j) - Temp_wall{i}(k-1,j)))/(0.5*(c_liner(i)*rho_liner(i) + c_laminate(i)*rho_laminate(i))); % Temperature at the interface of the liner and the laminate
                     end
                 end
             end
+            
             m_gas(i,j+1) = m_gas(i,j)+ dM_inlet;                                               % Mass of gas in the tank(s) as the filling proceeds
             Ugas(i,j+1)=Ugas(i,j)+Qsurf(i,j+1)+h_inlet(i,j+1)*dM_inlet;                        % Internal energy of the gas in the tank(s) as the filling proceeds
             u_gas(i,j+1)= Ugas(i,j+1)/m_gas(i,j+1);                                            % Specific energy of the gas in the tank(s) as the filling proceeds
             rho_gas(i,j+1)=m_gas(i,j+1)/vol_tank(i);                                           % Density of the gas in the tank(s) as the filling proceeds
-            P_gas(i,j+1) = refpropm('P','D',rho_gas(i,j+1),'U',u_gas(i,j+1),Fluid{i}, refpropdir);            % Pressure of the gas in the tank(s) as the filling proceeds
-            Temp_gas(i,j+1) = refpropm('T','D',rho_gas(i,j+1),'U',u_gas(i,j+1),Fluid{i}, refpropdir);         % Temperature of the gas in the tank(s) as the filling proceeds
-       
+            
+%             disp(vel_exit(i,j+1))
+%             disp(Re_entrance_actual(i,j+1))
+%             disp(Nu_ss(i,j+1))
+%             disp(Nu_hys(i,j+1))
+%             disp(heat_coef_forced(i,j+1))
+%             disp(heat_coef_total(i,j+1))
+%             disp(Temp_gas(i,j))
+%             disp(Temp_wall{i}(1,j))
+%             disp(dM_inlet)
+%             disp(Qsurf(i,j+1))
+%             disp(Ugas(i,j+1))
+%             disp(m_gas(i,j+1))
+%             disp(u_gas(i,j+1))
+%             disp(rho_gas(i,j+1))
+%             fprintf('\n')            
+            
+            % Pressure and temperature of the gas in the tank(s) as the filling proceeds
+            [P_gas(i,j+1) Temp_gas(i,j+1)] = refpropm('PT','D',rho_gas(i,j+1),'U',u_gas(i,j+1),Fluid{i}, refpropdir);
+            
         %% Heat Transfer calculations & caluclations of the thermodynamic properties of the gas in the tank(s) when L/D is MORE than three 
         else
             Re_compression(i,j+1) = Re_entrance_actual(i,j+1)*(d_inlet/d_tank(i));             % Reynolds number for zone 2
@@ -238,3 +316,7 @@ for j = 1:maxt
         
     end
 end
+
+Temp_gas_C = Temp_gas - 273.15;
+
+avgHeatCoef = mean(heat_coef_total(1,:))
