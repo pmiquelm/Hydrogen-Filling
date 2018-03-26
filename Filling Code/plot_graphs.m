@@ -7,8 +7,6 @@
 %accept any responsibility for use of or reliance on results produced by 
 %this software.
 
-Temp_gas_C = Temp_gas - 273.15;
-
 % PassStruct = {tank_number, time, Temp_gas_C, plotStyle, inputFileNames, ...
 %                 maxt, mfr, blnOneZone, Temp_wall, int_pt_liner_laminate}
 % set(0, 'userdata', PassStruct)
@@ -22,11 +20,11 @@ for i = 1:tank_number
         else
             FileRoot = strcat('_', inputFileNames{i}(1:end-4), '.csv');
         end
-        
-       OutName = strcat(OutputFolder, OutputPrefix, FileRoot)
+
+       OutName = fullfile(OutputFolder, strcat(OutputPrefix, FileRoot))
         % Write 1 Zone model output
  
-        csvwrite(OutName,[time',Temp_gas_C(i,1:maxt+1)',P_gas(i,1:maxt+1)']);
+       csvwrite(OutName,[time',Temp_gas_C(i,1:maxt+1)',P_gas(i,1:maxt+1)']);
 %         xlswrite(strcat(OutputFolder, OutputPrefix, FileRoot), {'Time (s)'}, 'Results', 'A1');
 %         xlswrite(strcat(OutputFolder, OutputPrefix, FileRoot), {'Gas Mass (kg)'}, 'Results', 'B1');
 %         xlswrite(strcat(OutputFolder, OutputPrefix, FileRoot), [time', m_gas(i,1:maxt+1)'], 'Results', 'A2');
@@ -61,7 +59,7 @@ for i = 1:tank_number
         
     else
         FileRoot = strcat('_', inputFileNames{i}(1:end-4), '.csv');
-        OutName = strcat(OutputFolder, OutputPrefix, FileRoot);
+        OutName = fullfile(OutputFolder, strcat(OutputPrefix, FileRoot));
         csvwrite(OutName,[time',Temp_gas_C(i,1:maxt+1)',P_gas(i,1:maxt+1)']);
 
 %         % Write 2 Zone model output
@@ -145,53 +143,51 @@ for i=1:tank_number
     hold on
     xlabel('Time (s)', 'fontsize', 12)
     ylabel('Cylinder gas temperature (°C)', 'fontsize', 12)
-    
-    disp(strcat(OutputFolder,'GasTemperature_vs_time.png'))
-    saveas(gcf, strcat(OutputFolder,'GasTemperature_vs_time.png'))
+    saveas(gcf, fullfile(OutputFolder,'GasTemperature_vs_time.png'))
     
     figure(2)
     plot(time,mfr(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
     hold on
     xlabel('Time (s)', 'fontsize', 12)
     ylabel('Mass flow rate (kg/s)', 'fontsize', 12)
-    saveas(gcf, strcat(OutputFolder,'mfr_vs_time.png'))
+    saveas(gcf, fullfile(OutputFolder,'mfr_vs_time.png'))
     
     figure(3)
     plot(time,P_gas(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
     hold on
     xlabel('Time (s)', 'fontsize', 12)
     ylabel('Pressure (kPa)', 'fontsize', 12)
-    saveas(gcf, strcat(OutputFolder,'pres_vs_time.png'))
+    saveas(gcf, fullfile(OutputFolder,'pres_vs_time.png'))
     
     
-    if Inner_wall_boundary(i) == 2 & (l_d(i) <= 3 | blnOneZone{i} == 1)
+    if Inner_wall_boundary(i) == 2 && (l_d(i) <= 3 || blnOneZone{i} == 1)
         figure(4)
         Temp_wall_C = Temp_wall{i}(1,1:maxt+1) - 273;
         plot(time,Temp_wall_C, plotStyle{i}, 'linewidth', 2)
         hold on
         xlabel('Time (s)', 'fontsize', 12)
         ylabel('Max. Liner Temp. (°C)', 'fontsize', 12)
-        saveas(gcf, strcat(OutputFolder,'MaxLinerTemp_vs_time.png'))
+        saveas(gcf, fullfile(OutputFolder,'MaxLinerTemp_vs_time.png'))
         blnShowFigures_3_4 = 1;
-    elseif Inner_wall_boundary(i) == 2 & l_d(i) > 3 & blnOneZone{i} == 0
+    elseif Inner_wall_boundary(i) == 2 && l_d(i) > 3 && blnOneZone{i} == 0
         figure(4)
         Temp_wall_C = Temp_wall_zone1{i}(1,1:maxt+1) - 273;
         plot(time,Temp_wall_C, plotStyle{i}, 'linewidth', 2)
         hold on
         xlabel('Time (s)', 'fontsize', 12)
         ylabel('Max. Liner Temp. (°C)', 'fontsize', 12)
-        saveas(gcf, strcat(OutputFolder,'MaxLinerTemp_vs_time.png'))
+        saveas(gcf, fullfile(OutputFolder,'MaxLinerTemp_vs_time.png'))
         blnShowFigures_3_4 = 1;
     end
     
-    if Inner_wall_boundary(i) == 2 & (l_d(i) <= 3 | blnOneZone{i} == 1)
+    if Inner_wall_boundary(i) == 2 && (l_d(i) <= 3 | blnOneZone{i} == 1)
         figure(5)
         Temp_wall_C = Temp_wall{i}(int_pt_liner_laminate(1) + 1,1:maxt+1) - 273;
         plot(time,Temp_wall_C, plotStyle{i}, 'linewidth', 2)
         hold on
         xlabel('Time (s)', 'fontsize', 12)
         ylabel('Max. Laminate Temp. (°C)', 'fontsize', 12)
-        saveas(gcf, strcat(OutputFolder,'MaxLaminateTemp_vs_time.png'))
+        saveas(gcf, fullfile(OutputFolder,'MaxLaminateTemp_vs_time.png'))
     elseif Inner_wall_boundary(i) == 2 & l_d(i) > 3 & blnOneZone{i} == 0
         figure(5)
         Temp_wall_C = Temp_wall_zone1{i}(int_pt_liner_laminate(1) + 1,1:maxt+1) - 273;
@@ -199,15 +195,130 @@ for i=1:tank_number
         hold on
         xlabel('Time (s)', 'fontsize', 12)
         ylabel('Max. Laminate Temp. (°C)', 'fontsize', 12)
-        saveas(gcf, strcat(OutputFolder,'MaxLaminateTemp_vs_time.png'))
+        saveas(gcf, fullfile(OutputFolder,'MaxLaminateTemp_vs_time.png'))
     end
     
-    legendInfo{i} = [inputFileNames{i}(1:end-4)]
+    legendInfo{i} = [inputFileNames{i}(1:end-4)];
     
     if Inner_wall_boundary(i) == 2
         wall_temp_legendInfo{wall_temp_count} = [inputFileNames{i}(1:end-4)];
         wall_temp_count = wall_temp_count + 1;
     end
+    
+    figure(6)
+    plot(time,Nu_ss(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Nusselt Number steady', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'nuss_vs_time.png'))
+    
+    figure(7)
+    plot(time,Nu_hys(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Nusselt Number hysteresis', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'nuhys_vs_time.png'))
+
+    figure(8)
+    plot(time,heat_coef_forced(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    plot(time,heat_coef_natural(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    plot(time,heat_coef_total(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Heat Transfer Coefficient', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'h_vs_time.png'))
+    
+    figure(9)
+    plot(time,k_gas(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Thermal Conductivity', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'k_vs_time.png'))
+    
+    figure(10)
+    plot(time,Re_entrance_actual(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Reynolds number', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'Re_vs_time.png'))
+    
+    figure(11)
+    plot(time,beta_gas(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Beta', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'Beta_vs_time.png'))
+    
+    figure(12)
+    plot(time,cp_gas(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('cp', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'cp_vs_time.png'))
+    
+    figure(13)
+    plot(time,visc_gas(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    plot(time,visc_exit(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Viscosity', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'mu_vs_time.png'))
+    
+    figure(14)
+    plot(time,Ra(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Ra', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'Ra_vs_time.png'))
+    
+    figure(15)
+    plot(time,Nu_n(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Nusselt natural', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'Nu_n_vs_time.png'))
+    
+    figure(16)
+    surf(Temp_wall{i}(:,1:1000:end))
+    hold on
+    saveas(gcf, fullfile(OutputFolder,'Temp_vs_time_vs_distance.png'))
+    
+    figure(17)
+    plot(m_gas(i,1:maxt+1), Temp_gas_C(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Mass (kg)', 'fontsize', 12)
+    ylabel('Temperature', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'Temp_vs_mass.png'))
+
+    figure(18)
+    plot(time, Temp_gas_C(i,1:maxt+1)-(Temp_wall{i}(1,1:maxt+1) - 273), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Temperature Difference (Gas - Wall)', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'Delta_Temp_vs_time.png'))
+    
+    figure(19)
+    plot(time, tau(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Tau', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'Tau_vs_time.png'))
+    
+    figure(20)
+    plot(time, vel_exit(i,1:maxt+1), plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Velocity (ms-1)', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'Vel_vs_time.png'))
+    
+    figure(21)
+    plot(InletPressureData, plotStyle{i}, 'linewidth', 2)
+    hold on
+    xlabel('Time (s)', 'fontsize', 12)
+    ylabel('Pressure (kPa)', 'fontsize', 12)
+    saveas(gcf, fullfile(OutputFolder,'InletPressure_vs_time.png'))
 end
 
 % Add legends to completed figures
@@ -228,3 +339,50 @@ if blnShowFigures_3_4 == 1
     figure(5)
     legend(wall_temp_legendInfo, 'Location', 'southeast')
 end
+
+figure(6)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(7)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(8)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(9)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(10)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(11)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(12)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(13)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(14)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(15)
+
+figure(16)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(17)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(18)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(19)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(20)
+legend(legendInfo, 'Location', 'northeast')
+
+figure(21)
+legend(legendInfo, 'Location', 'northeast')

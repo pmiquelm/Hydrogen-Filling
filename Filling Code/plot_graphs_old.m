@@ -7,8 +7,6 @@
 %accept any responsibility for use of or reliance on results produced by 
 %this software.
 
-Temp_gas_C = Temp_gas - 273.15;
-
 % PassStruct = {tank_number, time, Temp_gas_C, plotStyle, inputFileNames, ...
 %                 maxt, mfr, blnOneZone, Temp_wall, int_pt_liner_laminate}
 % set(0, 'userdata', PassStruct)
