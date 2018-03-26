@@ -42,24 +42,22 @@
 %volume_zone2            Volume of zone 2 (m^2)
 
 for i = 1:tank_number
-    inputvalues = importdata(inputFiles{i}, '\t')
-    inputdata = inputvalues(:, 1).data
     
-    d_inlet = inputdata(8);                   % Inlet diameter (m)
-    l_pipe_inlet = inputdata(9);              % length of pipe protruding into the tank (m)
+    d_inlet = inputdata{i}(8);                   % Inlet diameter (m)
+    l_pipe_inlet = inputdata{i}(9);              % length of pipe protruding into the tank (m)
     A_inlet = (pi*d_inlet^2)/4 ;                % Cross-sectional area of the inlet (m^2)
     vol_inlet = A_inlet * l_pipe_inlet;         % volume of inlet tube (m^3)
     
-    vol_tank(i) = inputdata(10);                 % Volume of the tank (m^3)
-    liner_thickness(i) = inputdata(11);          % Thickness of liner (m)
-    laminate_thickness(i) = inputdata(12);       % Thickness of laminate (m)
-    l_d(i) = inputdata(13);                      % length-to-diameter ratio of the tank
+    vol_tank(i) = inputdata{i}(10);                 % Volume of the tank (m^3)
+    liner_thickness(i) = inputdata{i}(11);          % Thickness of liner (m)
+    laminate_thickness(i) = inputdata{i}(12);       % Thickness of laminate (m)
+    l_d(i) = inputdata{i}(13);                      % length-to-diameter ratio of the tank
 end
 
 
 for i=1:tank_number
 if (Inner_wall_boundary(i)== 2 && PCM_inclusion(i) == 2)
-PCM_thickness(i) = inputdata(14);                                       % Inclusion of the thickness of the PCM
+PCM_thickness(i) = inputdata{i}(14);                                       % Inclusion of the thickness of the PCM
 else
 PCM_thickness(i) =0;                                           % No PCM is included   
 end
@@ -80,10 +78,10 @@ for i=1:tank_number
     end
     r_tank(i)=(vol_tank(i)/(pi*(4/3+2*(l_d(i)-1))))^(1/3);                                           % Inner radius of tank (m)
     d_tank(i) = 2*r_tank(i);                                                                         % Inner diameter of tank (m)
-    l_tank(i) = l_d(i)*(d_tank(i)) ;                                                                 % Length of inner portion of the tank (m)
+    l_tank(i) = l_d(i)*(d_tank(i));                                                                  % Length of inner portion of the tank (m)
     l_tank_straight(i) = l_tank(i)-(d_tank(i));                                                      % Length of middle portion of tank without dome (m)
     surf_area(i) = (2*pi*r_tank(i)*l_tank_straight(i))+(4*pi*r_tank(i)^2)- A_inlet;                  % Surface area of inner part of tank (m^2)
-
+    
 %% Calculations of the geometry of zone 1 and zone 2 when l/d of cylinder is greater than 3
 
 if l_d(i)>3    

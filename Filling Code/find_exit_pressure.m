@@ -43,8 +43,11 @@ function P_exit = find_exit_pressure(h,s,Fluid,P_guess, refpropdir)
      if P_guess < 0
         dM = -1000;
      else
-         h_static = refpropm('H','P',P_guess,'S',s,Fluid, refpropdir);     % Returns the static enthalpy at the exit of nozzle
-         sound_speed = refpropm('A','P',P_guess,'S',s,Fluid, refpropdir);  % Returns the speed of sound at the exit of nozzle  
+%          h_static = refpropm('H','P',P_guess,'S',s,Fluid, refpropdir);     % Returns the static enthalpy at the exit of nozzle
+%          sound_speed = refpropm('A','P',P_guess,'S',s,Fluid, refpropdir);  % Returns the speed of sound at the exit of nozzle
+         
+         [h_static sound_speed] = refpropm('HA','P',P_guess,'S',s,Fluid, refpropdir);
+         
          M = sqrt(2*(h-h_static)/(sound_speed)^2);             % Calcutes the Mach number at the exit of nozzlee
 
          dM = 1 - M;                                                % find the difference in Mach number and one.

@@ -39,30 +39,27 @@ if tank_number>1
 end
 
 for i=1:tank_number
-    inputvalues = importdata(inputFiles{i}, '\t')
-    inputdata = inputvalues(:, 1).data
-    
-    rho_liner(i) = inputdata(15);                                                              % Liner density
-    rho_laminate(i) = inputdata(16);                                                           % Laminate density
-    cond_liner(i) = inputdata(17);                                                              % Liner conductivity
-    cond_laminate(i) = inputdata(18);                                                          % Laminate conductivity
-    c_liner(i) = inputdata(19);                                                                 % Liner specific heat
-    c_laminate(i) = inputdata(20);                                                              % Laminate specific heat
+    rho_liner(i) = inputdata{i}(15);                                                              % Liner density
+    rho_laminate(i) = inputdata{i}(16);                                                           % Laminate density
+    cond_liner(i) = inputdata{i}(17);                                                              % Liner conductivity
+    cond_laminate(i) = inputdata{i}(18);                                                          % Laminate conductivity
+    c_liner(i) = inputdata{i}(19);                                                                 % Liner specific heat
+    c_laminate(i) = inputdata{i}(20);                                                              % Laminate specific heat
     
     alpha_liner(i) = cond_liner(i)/(rho_liner(i)*c_liner(i));                         % Liner thermal diffusivity
     alpha_laminate(i) = cond_laminate(i)/(rho_laminate(i)*c_laminate(i));             % Laminate thermal diffusivity
     
     if (Inner_wall_boundary(i)== 2 && PCM_inclusion(i) == 2)
-        rho_PCM_solid(i) = inputdata(21);                                                                         % Density of the PCM as a solid
-        rho_PCM_liquid(i) = inputdata(22);                                                                        % Density of the PCM as a liquid
+        rho_PCM_solid(i) = inputdata{i}(21);                                                                         % Density of the PCM as a solid
+        rho_PCM_liquid(i) = inputdata{i}(22);                                                                        % Density of the PCM as a liquid
         rho_PCM_mixture(i) = (rho_PCM_solid(i) + rho_PCM_liquid(i))/2;                                  % Density of the PCM as a mixture of solid and liquid
-        cond_PCM(i) = inputdata(23);                                                                             % Thermal conductivity of PCM as a solid
-        c_PCM_solid(i) = inputdata(24);                                                                          % Specific heat of the PCM in the solid state
-        c_PCM_liquid(i) = inputdata(25);                                                                         % Specific heat of the PCM in the liquid state
+        cond_PCM(i) = inputdata{i}(23);                                                                             % Thermal conductivity of PCM as a solid
+        c_PCM_solid(i) = inputdata{i}(24);                                                                          % Specific heat of the PCM in the solid state
+        c_PCM_liquid(i) = inputdata{i}(25);                                                                         % Specific heat of the PCM in the liquid state
         c_PCM_mixture(i) = (c_PCM_solid(i) + c_PCM_liquid(i))/2;                                        % Specific heat of the PCM as solid & liquid mixture
-        latent_fusion_PCM(i) = inputdata(26);                                                                  % Latent heat of fusion of the PCM
-        low_melting_temp(i) = inputdata(27);                                                                      % Maximum temperature at which the PCM remains as a solid
-        high_melting_temp(i) = inputdata(28);                                                                     % Minimum temperature at which the PCM becomes liquid
+        latent_fusion_PCM(i) = inputdata{i}(26);                                                                  % Latent heat of fusion of the PCM
+        low_melting_temp(i) = inputdata{i}(27);                                                                      % Maximum temperature at which the PCM remains as a solid
+        high_melting_temp(i) = inputdata{i}(28);                                                                     % Minimum temperature at which the PCM becomes liquid
         gradient_enthalpy_temp(i) = latent_fusion_PCM(i)/(high_melting_temp(i)-low_melting_temp(i));    % Ratio of the Latent heat of fusion of the PCM to the difference between the maximum and minimum temperatures during transition
         low_melting_enthalpy(i) = c_PCM_solid(i)*low_melting_temp(i);                                   % Value of the enthalpy at the minimum temperature at which the PCM is still a solid
     end
